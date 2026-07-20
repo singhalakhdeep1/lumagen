@@ -1,59 +1,39 @@
-# 🎨 AI Image Generator
+# AI Image Generator
 
-A beautiful, production-ready AI image generation platform built with Next.js, Replicate AI, and Firebase. Generate stunning AI art with advanced prompting, multiple style presets, and image upscaling capabilities.
+An AI image generation platform built with Next.js, Replicate AI, and Firebase. Generate AI art with advanced prompting, multiple style presets, and image upscaling capabilities.
 
-![AI Image Generator](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
-![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwind-css)
-![Replicate](https://img.shields.io/badge/Replicate-AI-purple)
+## Features
 
-## ✨ Features
+- Advanced prompting for detailed image descriptions
+- 8 style presets (Realistic, Artistic, Anime, Digital Art, 3D, Fantasy, Cyberpunk, Watercolor)
+- Multiple aspect ratios (Square, Landscape, Portrait)
+- High-quality output powered by Stability AI's SDXL model
+- Real-time progress tracking
+- Queue management for multiple images
+- Persistent local storage
+- Full-screen preview
+- Image download
+- 2x resolution enhancement with Real-ESRGAN
+- Face enhancement
+- Modern UI with gradient backgrounds
+- Dark mode support
+- Responsive design
+- Framer Motion animations
 
-### 🎨 AI Image Generation
+## Tech Stack
 
-- **Advanced Prompting**: Describe your vision in detail
-- **8 Style Presets**: Realistic, Artistic, Anime, Digital Art, 3D, Fantasy, Cyberpunk, Watercolor
-- **Multiple Aspect Ratios**: Square (1:1), Landscape (16:9), Portrait (9:16)
-- **High-Quality Output**: Powered by Stability AI's SDXL model
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- Replicate API (Stability AI SDXL, Real-ESRGAN)
+- Firebase Storage (optional)
+- Zustand
+- Local Storage
+- Framer Motion
+- Radix UI
 
-### 🚀 Generation Queue
-
-- **Real-time Progress Tracking**: Monitor your generations
-- **Queue Management**: Multiple images at once
-- **Status Indicators**: Pending, Generating, Completed, Failed states
-
-### 🖼️ Gallery Management
-
-- **Persistent Storage**: All your images saved locally
-- **Full-Screen Preview**: Click to view in detail
-- **Download Images**: Save to your device
-- **Delete Unwanted Images**: Clean up your gallery
-
-### ⬆️ Image Upscaling
-
-- **2x Resolution Enhancement**: Powered by Real-ESRGAN
-- **Face Enhancement**: Automatic face detail improvement
-- **One-Click Upscale**: Simple and fast
-
-### 🎭 Beautiful UI
-
-- **Modern Design**: Gradient backgrounds and smooth animations
-- **Dark Mode Support**: Easy on the eyes
-- **Responsive**: Works on all devices
-- **Smooth Animations**: Framer Motion powered
-
-## 🛠️ Tech Stack
-
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Shadcn UI
-- **AI**: Replicate API (Stability AI SDXL, Real-ESRGAN)
-- **Storage**: Firebase Storage (optional)
-- **State**: Zustand + Local Storage
-- **Animations**: Framer Motion
-- **UI Components**: Radix UI
-
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -214,7 +194,7 @@ Edit `app/api/generate/route.ts` to use different Replicate models.
 
 ## 📝 License
 
-MIT License - feel free to use this project for personal or commercial purposes.
+Proprietary - All rights reserved.
 
 ## 🤝 Contributing
 
