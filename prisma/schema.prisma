@@ -1,0 +1,108 @@
+// Lumagen data model. Postgres (matches the original migration); DATABASE_URL in .env.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GenerationStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum Provider {
+  replicate_sdxl
+  stability
+  dalle
+  midjourney
+}
+
+model Generation {
+  id              String           @id @default(cuid())
+  prompt          String
+  enhancedPrompt  String
+  style           String
+  aspectRatio     String
+  provider        Provider         @default(replicate_sdxl)
+  status          GenerationStatus @default(pending)
+  imageUrl        String?
+  storageKey      String?
+  width           Int?
+  height          Int?
+  errorMessage    String?
+  ipAddress       String?
+  externalJobId   String? // provider-side job/prediction id (Replicate prediction, Midjourney task)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  completedAt     DateTime?
+
+  upscales  Upscale[]
+  mediaItem MediaItem?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Upscale {
+  id           String   @id @default(cuid())
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  storageKey   String?
+  scale        Int      @default(2)
+  faceEnhance  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([generationId])
+}
+
+model MediaItem {
+  id           String   @id @default(cuid())
+  generationId String?  @unique
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: SetNull)
+  url          String
+  prompt       String
+  style        String
+  tags         String[] @default([])
+  width        Int?
+  height       Int?
+  format       String?
+  sizeBytes    Int?
+  createdAt    DateTime @default(now())
+
+  collections CollectionItem[]
+
+  @@index([createdAt])
+}
+
+model Collection {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  items CollectionItem[]
+}
+
+model CollectionItem {
+  collectionId String
+  mediaItemId  String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  mediaItem    MediaItem  @relation(fields: [mediaItemId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, mediaItemId])
+}
+
+// Legacy table named in the original migration; kept for compatibility, unused by new code.
+model GeneratedAsset {
+  id        String   @id @default(cuid())
+  prompt    String
+  imageUrl  String
+  width     Int
+  height    Int
+  createdAt DateTime @default(now())
+}

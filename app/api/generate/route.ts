@@ -1,62 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Replicate from 'replicate'
+import { ZodError } from 'zod'
+import { withRequestContext, logger } from '@/lib/logging'
+import { generateImage, GenerateRequestSchema, RateLimitedError, checkGenerationRateLimit } from '@/lib/generation'
 
-const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN || '',
-})
+function ip(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? request.headers.get('x-real-ip') ?? '127.0.0.1'
+}
 
 export async function POST(request: NextRequest) {
+  return withRequestContext(request, async () => {
     try {
-        const { prompt, style, aspectRatio } = await request.json()
+      const body = await request.json()
+      const input = GenerateRequestSchema.parse(body)
+      const ipAddress = ip(request)
 
-        if (!prompt) {
-            return NextResponse.json(
-                { error: 'Prompt is required' },
-                { status: 400 }
-            )
-        }
+      await checkGenerationRateLimit(ipAddress)
 
-        // Style-specific prompt enhancements
-        const stylePrompts: Record<string, string> = {
-            realistic: 'ultra realistic, photorealistic, detailed, 8k resolution',
-            artistic: 'artistic, painterly, expressive, vibrant colors',
-            anime: 'anime style, manga art, vibrant, detailed anime artwork',
-            digital: 'digital art, concept art, trending on artstation, highly detailed',
-            '3d': '3d render, octane render, cinema 4d, unreal engine, highly detailed',
-            fantasy: 'fantasy art, magical, ethereal, mystical, dreamy atmosphere',
-            cyberpunk: 'cyberpunk, neon lights, futuristic, sci-fi, dystopian',
-            watercolor: 'watercolor painting, soft colors, artistic, flowing, painterly',
-        }
+      const { generation } = await generateImage(input, ipAddress)
 
-        const enhancedPrompt = `${prompt}, ${stylePrompts[style] || ''}`
+      if (generation.status === 'failed') {
+        return NextResponse.json({ error: generation.errorMessage || 'Failed to generate image' }, { status: 502 })
+      }
 
-        // Using SDXL model from Replicate
-        const output = await replicate.run(
-            "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
-            {
-                input: {
-                    prompt: enhancedPrompt,
-                    negative_prompt: "ugly, deformed, noisy, blurry, distorted, low quality",
-                    width: aspectRatio === 'square' ? 1024 : aspectRatio === 'portrait' ? 832 : 1216,
-                    height: aspectRatio === 'square' ? 1024 : aspectRatio === 'portrait' ? 1216 : 832,
-                    num_outputs: 1,
-                    guidance_scale: 7.5,
-                    num_inference_steps: 50,
-                }
-            }
-        ) as string[]
-
-        return NextResponse.json({
-            success: true,
-            imageUrl: output[0],
-            prompt,
-            style,
-        })
-    } catch (error: any) {
-        console.error('Generation error:', error)
-        return NextResponse.json(
-            { error: error.message || 'Failed to generate image' },
-            { status: 500 }
-        )
+      return NextResponse.json({
+        success: true,
+        id: generation.id,
+        imageUrl: generation.imageUrl,
+        prompt: generation.prompt,
+        style: generation.style,
+        provider: generation.provider,
+      })
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json({ error: error.errors[0]?.message ?? 'Invalid request' }, { status: 400 })
+      }
+      if (error instanceof RateLimitedError) {
+        return NextResponse.json({ error: error.message }, { status: 429, headers: { 'Retry-After': String(error.retryAfter) } })
+      }
+      logger.logError('Generation request error', error)
+      return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to generate image' }, { status: 500 })
     }
+  })
 }
