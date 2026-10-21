@@ -81,7 +81,7 @@ export class CacheService {
       return
     }
     const re = new RegExp('^' + pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$')
-    for (const key of memory.keys()) if (re.test(key)) memory.delete(key)
+    for (const key of Array.from(memory.keys())) if (re.test(key)) memory.delete(key)
   }
 
   async clearAll(): Promise<void> {
